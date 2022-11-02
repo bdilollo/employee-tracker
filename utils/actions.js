@@ -13,7 +13,7 @@ const db = mysql.createConnection(
     console.log('connected to the workplace_db database')
 );
 
-async function viewDepartments() {
+function viewDepartments() {
     db.query('SELECT * FROM departments',
     function (err, results) {
         console.table(results);
@@ -21,14 +21,21 @@ async function viewDepartments() {
 };
 
 function viewRoles() {
-    db.query('SELECT * FROM roles',
+    db.query(
+        `SELECT roles.title AS Title, roles.id AS ID, roles.salary AS Salary, departments.name AS Department
+        FROM roles 
+        JOIN departments ON roles.department_id = departments.id;`,
     function (err, results) {
         console.table(results);
     })
 };
 
 function viewEmployees() {
-    db.query('SELECT * FROM employees',
+    db.query(
+        `SELECT employees.id AS ID, CONCAT(employees.first_name, ' ', employees.last_name) AS Name, roles.title AS Title, departments.name AS Department, roles.salary AS Salary, employees.manager_id 
+        FROM employees 
+        JOIN roles ON employees.role_id = roles.id
+        JOIN departments ON roles.department_id = departments.id`,
     function (err, results) {
         console.table(results);
     })
@@ -42,7 +49,8 @@ async function addDepartment() {
             message: 'New department name:'
         }
     ])
-    db.query(`INSERT INTO departments (name) VALUES ('${response.department}')`,
+    db.query(
+        `INSERT INTO departments (name) VALUES ('${response.department}';`,
     function (err, results) {
         console.log(`${response.department} department added!`);
     })
@@ -135,6 +143,7 @@ async function updateEmployee() {
     })
 };
 
+
 module.exports = {
     viewDepartments,
     viewRoles,
@@ -142,5 +151,5 @@ module.exports = {
     addDepartment,
     addRole,
     addEmployee,
-    updateEmployee
+    updateEmployee,
 };

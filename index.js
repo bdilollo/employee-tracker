@@ -1,17 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const action = require('./utils/actions');
-// const { allowedNodeEnvironmentFlags } = require('process');
 
-// const db = mysql.createConnection(
-//     {
-//         host: 'localhost',
-//         user: 'root',
-//         password: 'password',
-//         database: 'workplace_db'
-//     },
-//     console.log('connected to the workplace_db database')
-// );
 
 function initialPrompt() {
     inquirer.prompt([
@@ -30,6 +20,7 @@ function initialPrompt() {
             ]
         }
     ])
+    
     .then((response) => {
         handleResponse(response);
     });
@@ -59,27 +50,6 @@ function handleResponse(response) {
             action.updateEmployee();
             break;
     }
-    // promptReturn();
 };
-
-
-function promptReturn() {
-    inquirer.prompt([
-        {
-            type: 'list',
-            name: 'return',
-            message: 'Would you like to select another action?',
-            choices: [
-                'yes',
-                'no'
-            ]
-        }
-    ])
-    .then((response) => {
-        if (response.return == 'yes') {
-            initialPrompt();
-        }
-    });
-}
 
 initialPrompt();
