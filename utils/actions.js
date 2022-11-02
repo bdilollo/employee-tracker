@@ -50,7 +50,7 @@ async function addDepartment() {
         }
     ])
     db.query(
-        `INSERT INTO departments (name) VALUES ('${response.department}';`,
+        `INSERT INTO departments (name) VALUES ('${response.department}');`,
     function (err, results) {
         console.log(`${response.department} department added!`);
     })
