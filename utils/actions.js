@@ -13,41 +13,43 @@ const db = mysql.createConnection(
     console.log('connected to the workplace_db database')
 );
 
-function viewDepartments() {
-    db.query('SELECT * FROM departments', function (err, results) {
+async function viewDepartments() {
+    db.query('SELECT * FROM departments',
+    function (err, results) {
         console.table(results);
     })
 };
 
 function viewRoles() {
-    db.query('SELECT * FROM roles', function (err, results) {
+    db.query('SELECT * FROM roles',
+    function (err, results) {
         console.table(results);
     })
 };
 
 function viewEmployees() {
-    db.query('SELECT * FROM employees', function (err, results) {
+    db.query('SELECT * FROM employees',
+    function (err, results) {
         console.table(results);
     })
 };
 
-function addDepartment() {
-    inquirer.prompt([
+async function addDepartment() {
+    let response = await inquirer.prompt([
         {
             type: 'input',
             name: 'department',
             message: 'New department name:'
         }
     ])
-    .then((response) => {
-        db.query(`INSERT INTO departments (name) VALUES ('${response.department}')`, function (err, results) {
-            console.log(`${response.department} department added!`);
-        })
+    db.query(`INSERT INTO departments (name) VALUES ('${response.department}')`,
+    function (err, results) {
+        console.log(`${response.department} department added!`);
     })
 };
 
-function addRole() {
-    inquirer.prompt([
+async function addRole() {
+    let response = await inquirer.prompt([
         {
             type: 'input',
             name: 'title',
@@ -64,16 +66,16 @@ function addRole() {
             message: 'In which department is this role located?'
         }
     ])
-    .then((response) => {
-        db.query(`INSERT INTO roles VALUES ('${response.title}', ${response.salary}, '${response.department})`,
-        function (err, results) {
-            console.log(`New ${response.title} role added!`);
-        })
+    db.query(
+        `SELECT @dept_id := id FROM departments WHERE name = '${response.department}';
+        INSERT INTO roles (title, salary, department_id) VALUES ('${response.title}', ${response.salary}, @dept_id)`,
+    function (err, results) {
+        console.log(`New ${response.title} role added!`);
     })
 };
 
-function addEmployee() {
-    inquirer.prompt([
+async function addEmployee() {
+    let response = await inquirer.prompt([
         {
             type: 'input',
             name: 'first',
@@ -90,18 +92,22 @@ function addEmployee() {
             message: 'New employee role:'
         },
         {
-            type: 'confirm',
+            type: 'input',
             name: 'manager',
             message: "Who is this employee's manager? (if no manager, leave blank)"
         }
     ])
-    .then((response) => {
-        db.query(`INSERT INTO employees VALUES ('${response.first}', '${response.last}', '${response.role}, '${response.manager}')`,
-        function(err, results) {
-            console.log(`${response.first} ${response.last} added as new employee!`);
-        })
-    }
-)};
+    let nameArr = (response.manager).split(' ');
+    let managerFirst = nameArr[0];
+    let managerLast = nameArr[1];
+    db.query(
+        `SELECT @role_id := id FROM roles WHERE title = '${response.role}';
+        SELECT @manager_id := id FROM employees WHERE first_name = '${managerFirst}' AND last_name = '${managerLast}';
+        INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ('${response.first}', '${response.last}', @role_id, @manager_id)`,
+    function(err, results) {
+        console.log(`${response.first} ${response.last} added as new employee!`);
+    })
+};
 
 async function updateEmployee() {
     let response = await inquirer.prompt([
@@ -121,23 +127,13 @@ async function updateEmployee() {
             message: 'New Role Title:'
         }
     ]);
-    
-    db.query(`SELECT @role_id := id FROM roles WHERE title = '${response.title}'; UPDATE employees SET role_id = @role_id WHERE first_name = '${response.first}' AND last_name = '${response.last}';`,
+    db.query(
+        `SELECT @role_id := id FROM roles WHERE title = '${response.title}';
+        UPDATE employees SET role_id = @role_id WHERE first_name = '${response.first}' AND last_name = '${response.last}';`,
     function(err, results) {
         console.log(`Role for ${response.first} ${response.last} updated!`);
     })
-    // .then((response) => {
-    //     let { first, last } = response;
-    // })
-    // .then(() => {
-    //     inquirer.prompt([
-    //         {
-    //             type: 'input',
-    //             name: ''
-    //         }
-    //     ])
-    // })
-}
+};
 
 module.exports = {
     viewDepartments,
