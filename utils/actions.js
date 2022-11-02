@@ -7,13 +7,14 @@ const db = mysql.createConnection(
         host: 'localhost',
         user: 'root',
         password: 'password',
-        database: 'workplace_db'
+        database: 'workplace_db',
+        multipleStatements: true
     },
     console.log('connected to the workplace_db database')
 );
 
 function viewDepartments() {
-    db.query('SELECT id, name FROM departments', function (err, results) {
+    db.query('SELECT * FROM departments', function (err, results) {
         console.table(results);
     })
 };
@@ -102,14 +103,40 @@ function addEmployee() {
     }
 )};
 
-function updateEmployee() {
-    inquirer.prompt([
+async function updateEmployee() {
+    let response = await inquirer.prompt([
         {
             type: 'input',
-            name: 'name',
-            message: 'Which employee would you like to update?'
+            name: 'first',
+            message: 'First name of employee you want to update:'
         },
-    ])
+        {
+            type: 'input',
+            name: 'last',
+            message: 'Last name of employee you want to update:'
+        },
+        {
+            type: 'input',
+            name: 'title',
+            message: 'New Role Title:'
+        }
+    ]);
+    
+    db.query(`SELECT @role_id := id FROM roles WHERE title = '${response.title}'; UPDATE employees SET role_id = @role_id WHERE first_name = '${response.first}' AND last_name = '${response.last}';`,
+    function(err, results) {
+        console.log(`Role for ${response.first} ${response.last} updated!`);
+    })
+    // .then((response) => {
+    //     let { first, last } = response;
+    // })
+    // .then(() => {
+    //     inquirer.prompt([
+    //         {
+    //             type: 'input',
+    //             name: ''
+    //         }
+    //     ])
+    // })
 }
 
 module.exports = {
