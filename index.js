@@ -59,7 +59,7 @@ function handleResponse(response) {
             action.updateEmployee();
             break;
     }
-    promptReturn();
+    // promptReturn();
 };
 
 
